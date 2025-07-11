@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Плейлистів</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="main-container">
+        <!-- Ліва панель: Список пісень -->
+        <div class="panel left-panel">
+            <div class="panel-header"><h3><i class="fas fa-list-ul"></i> Список пісень</h3><button id="clear-songs-btn" title="Очистити все"><i class="fas fa-trash"></i></button></div>
+            <ul id="song-list"></ul>
+        </div>
+
+        <!-- Центральна панель: Завантаження -->
+        <div class="center-panel-wrapper">
+            <div class="panel upload-block" id="visual-upload-block"><div class="upload-prompt"><i class="fas fa-image fa-3x"></i><p><b>Візуальна частина</b></p><p class="small-text">Перетягніть фото, GIF або відео</p></div><input type="file" id="visual-input" accept="image/*,video/mp4,video/quicktime,video/webm,image/gif" hidden></div>
+            <div class="panel upload-block" id="audio-upload-block"><div class="upload-prompt"><i class="fas fa-music fa-3x"></i><p><b>Аудіо доріжки</b></p><p class="small-text">Перетягніть один або декілька файлів</p></div><input type="file" id="audio-input" accept="audio/*" multiple hidden></div>
+            <div id="generate-button-container">
+                <button id="generate-btn"><i class="fas fa-film"></i> Згенерувати Відео</button>
+                <div id="progress-bar-container">
+                    <div id="progress-bar"></div>
+                    <span id="progress-text"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Права панель: Таймлайн -->
+        <div class="panel right-panel">
+            <div class="panel-header"><h3><i class="fas fa-clock"></i> Таймлайн</h3></div>
+            <div id="timeline"></div>
+        </div>
+    </div>
+
+    <!-- Налаштування -->
+    <div class="settings">
+        <i class="fas fa-cog" id="settings-icon" title="Налаштування"></i>
+        <div class="settings-menu" id="settings-menu">
+            <div class="setting-item">
+                <label for="fps-slider">FPS для відео/GIF:</label>
+                <input type="range" id="fps-slider" min="1" max="45" value="30">
+                <span id="fps-value">30 FPS</span>
+            </div>
+            <div class="setting-item">
+                <label>Тип прогрес-бару:</label>
+                <div class="toggle-switch">
+                    <input type="radio" id="progress-percent" name="progress-type" value="percent" checked><label for="progress-percent">%</label>
+                    <input type="radio" id="progress-time" name="progress-type" value="time"><label for="progress-time">Час</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
