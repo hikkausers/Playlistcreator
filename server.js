@@ -12,6 +12,8 @@ const VIDEO_DONE_DIR = 'video_done';
 [UPLOADS_DIR, VIDEO_DONE_DIR].forEach(dir => { if (!fs.existsSync(dir)) fs.mkdirSync(dir); });
 
 const app = express();
+app.use(express.json({ limit: '10gb' }));
+app.use(express.urlencoded({ limit: '10gb', extended: true }));
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 wss.on('connection', ws => console.log('Клієнт підключився до WebSocket'));
