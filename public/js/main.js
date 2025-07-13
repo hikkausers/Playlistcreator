@@ -55,7 +55,18 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.timeline.innerText = timelineText;
     }
     const getAudioDuration = (file) => new Promise((resolve, reject) => { const audio = new Audio(); audio.preload = 'metadata'; audio.onloadedmetadata = () => { URL.revokeObjectURL(audio.src); resolve(audio.duration); }; audio.onerror = reject; audio.src = URL.createObjectURL(file); });
-    const formatTime = (time) => `${Math.floor(time / 60).toString().padStart(2, '0')}:${Math.floor(time % 60).toString().padStart(2, '0')}`;
+    const formatTime = (timeInSeconds) => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+
+    let formattedTime = '';
+    if (hours > 0) {
+        formattedTime += `${hours.toString().padStart(2, '0')}:`;
+    }
+    formattedTime += `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return formattedTime;
+};
     elements.generateBtn.addEventListener('click', async () => {
         if (!visualFile || songs.length === 0) { alert('Будь ласка, завантажте візуальний файл та хоча б одну пісню.'); return; }
         elements.generateBtnContainer.classList.add('in-progress');
