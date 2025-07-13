@@ -39,6 +39,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// ЗНАЙДІТЬ ЦЕЙ БЛОК І ЗАМІНІТЬ ЙОГО ПОВНІСТЮ
+
 app.post('/generate', upload.fields([{ name: 'visual', maxCount: 1 }, { name: 'audio' }]), (req, res) => {
     const visualFile = req.files.visual?.[0];
     const audioFiles = req.files.audio || [];
@@ -63,6 +65,10 @@ app.post('/generate', upload.fields([{ name: 'visual', maxCount: 1 }, { name: 'a
             let args = [];
             const fps = req.body.fps || '30';
 
+            // *** ЗМІНА #1: Ми додаємо спеціальний прапор '-progress -' ***
+            // Це наказує ffmpeg надсилати чистий звіт про прогрес в стандартний вивід (stdout)
+            args.push('-progress', '-', '-nostats');
+
             if (visualFile.mimetype === 'image/gif') {
                 args.push('-stream_loop', '-1', '-i', path.resolve(visualFile.path));
             } else if (visualFile.mimetype.startsWith('image/')) {
@@ -81,26 +87,29 @@ app.post('/generate', upload.fields([{ name: 'visual', maxCount: 1 }, { name: 'a
             
             args.push('-filter_complex', `${videoFilter}; ${audioFilter}`);
             
-            // ### ФІНАЛЬНА ЗМІНА: ВИДАЛЯЄМО  І ДОДАЄМО  ###
             args.push(
                 '-map', '[v_out]', '-map', '[a_out]',
                 '-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p',
                 '-c:a', 'aac', '-b:a', '192k',
-                '-t', totalDuration, // Явно вказуємо тривалість вихідного файлу
+                '-t', totalDuration,
                 outputPath
             );
             
-            console.log('✅ Запускаю FFmpeg з фінальною командою:', `ffmpeg ${args.join(' ')}`);
+            console.log('✅ Запускаю FFmpeg з оновленою командою:', `ffmpeg ${args.join(' ')}`);
             const ffmpegProcess = spawn('ffmpeg', args);
 
-            let stderr = '';
+            let stderrOutput = ''; // Ми все ще можемо збирати помилки окремо
             ffmpegProcess.stderr.on('data', (data) => {
-                const line = data.toString();
-                stderr += line;
-                const timeMatch = line.match(/time=(\S+)/);
-                if (timeMatch) {
-                    const progress = parseTimeToSeconds(timeMatch[1]);
-                    broadcast({ type: 'progress', progress, totalDuration });
+                stderrOutput += data.toString();
+            });
+
+            // *** ЗМІНА #2: Тепер ми слухаємо stdout, а не stderr, для прогресу ***
+            ffmpegProcess.stdout.on('data', (data) => {
+                const text = data.toString();
+                const outTimeMatch = text.match(/out_time_ms=(\d+)/);
+                if (outTimeMatch) {
+                    const progressInSeconds = parseInt(outTimeMatch[1], 10) / 1000000;
+                    broadcast({ type: 'progress', progress: progressInSeconds, totalDuration });
                 }
             });
 
@@ -110,8 +119,8 @@ app.post('/generate', upload.fields([{ name: 'visual', maxCount: 1 }, { name: 'a
                     broadcast({ type: 'done', downloadPath: `/${VIDEO_DONE_DIR}/${outputFileName}`, fileName: outputFileName });
                 } else {
                     console.error(`❌ FFmpeg завершився з кодом помилки ${code}`);
-                    console.error('Потік помилок FFmpeg (stderr):\n', stderr);
-                    broadcast({ type: 'error', message: `FFmpeg exited with code ${code}. Details: ${stderr.split('\n').slice(-15).join('\n')}` });
+                    console.error('Потік помилок FFmpeg (stderr):\n', stderrOutput);
+                    broadcast({ type: 'error', message: `FFmpeg exited with code ${code}. Details: ${stderrOutput.split('\n').slice(-15).join('\n')}` });
                 }
                 cleanup();
             });
@@ -129,6 +138,8 @@ app.post('/generate', upload.fields([{ name: 'visual', maxCount: 1 }, { name: 'a
         }
     })();
 });
+
+// КІНЕЦЬ БЛОКУ ДЛЯ ЗАМІНИ
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`✅ Сервер з WebSocket запущено на http://localhost:${PORT}`));
