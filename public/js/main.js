@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let songs = [], visualFile = null, visualPreviewUrl = null;
 
     // --- ОСЬ ВИПРАВЛЕННЯ: 'ws://' замінено на 'wss://' ---
-    const socket = new WebSocket('wss://' + window.location.host);
+    const socket = new WebSocket('ws://193.124.57.59:3000');
     // ----------------------------------------------------
 
     socket.onmessage = (event) => {
